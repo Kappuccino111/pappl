@@ -228,6 +228,7 @@ struct pappl_sc_driver_data_s		// Scanner driver data
 //
 
 extern void		papplScannerCancelAllJobs(pappl_scanner_t *scanner) _PAPPL_PUBLIC;
+extern void		papplScannerCloseDevice(pappl_scanner_t *scanner) _PAPPL_PUBLIC;
 
 extern pappl_scanner_t	*papplScannerCreate(pappl_system_t *system, int scanner_id, const char *scanner_name, const char *driver_name, const char *device_id, const char *device_uri) _PAPPL_PUBLIC;
 
@@ -242,6 +243,7 @@ extern pappl_sc_driver_data_t *papplScannerGetDriverData(pappl_scanner_t *scanne
 extern const char	*papplScannerGetDriverName(pappl_scanner_t *scanner) _PAPPL_PUBLIC;
 extern char		*papplScannerGetGeoLocation(pappl_scanner_t *scanner, char *buffer, size_t bufsize) _PAPPL_PUBLIC;
 extern int		papplScannerGetID(pappl_scanner_t *scanner) _PAPPL_PUBLIC;
+extern int		papplScannerGetImpressionsCompleted(pappl_scanner_t *scanner) _PAPPL_PUBLIC;
 extern char		*papplScannerGetLocation(pappl_scanner_t *scanner, char *buffer, size_t bufsize) _PAPPL_PUBLIC;
 extern size_t		papplScannerGetMaxActiveJobs(pappl_scanner_t *scanner) _PAPPL_PUBLIC;
 extern size_t		papplScannerGetMaxCompletedJobs(pappl_scanner_t *scanner) _PAPPL_PUBLIC;
@@ -258,11 +260,20 @@ extern char		*papplScannerGetScanGroup(pappl_scanner_t *scanner, char *buffer, s
 extern ipp_pstate_t	papplScannerGetState(pappl_scanner_t *scanner) _PAPPL_PUBLIC;
 extern pappl_system_t	*papplScannerGetSystem(pappl_scanner_t *scanner) _PAPPL_PUBLIC;
 
+extern bool		papplScannerIsDeleted(pappl_scanner_t *scanner) _PAPPL_PUBLIC;
+
+extern void		papplScannerIterateActiveJobs(pappl_scanner_t *scanner, pappl_job_cb_t cb, void *data, size_t job_index, size_t limit) _PAPPL_PUBLIC;
+extern void		papplScannerIterateAllJobs(pappl_scanner_t *scanner, pappl_job_cb_t cb, void *data, size_t job_index, size_t limit) _PAPPL_PUBLIC;
+extern void		papplScannerIterateCompletedJobs(pappl_scanner_t *scanner, pappl_job_cb_t cb, void *data, size_t job_index, size_t limit) _PAPPL_PUBLIC;
+
+extern pappl_device_t	*papplScannerOpenDevice(pappl_scanner_t *scanner) _PAPPL_PUBLIC;
+
 extern void		papplScannerSetContact(pappl_scanner_t *scanner, pappl_contact_t *contact) _PAPPL_PUBLIC;
 extern void		papplScannerSetDNSSDName(pappl_scanner_t *scanner, const char *value) _PAPPL_PUBLIC;
 extern bool		papplScannerSetDriverData(pappl_scanner_t *scanner, pappl_sc_driver_data_t *data, ipp_t *attrs) _PAPPL_PUBLIC;
 extern bool		papplScannerSetDriverDefaults(pappl_scanner_t *scanner, pappl_sc_driver_data_t *data) _PAPPL_PUBLIC;
 extern void		papplScannerSetGeoLocation(pappl_scanner_t *scanner, const char *value) _PAPPL_PUBLIC;
+extern void		papplScannerSetImpressionsCompleted(pappl_scanner_t *scanner, int add) _PAPPL_PUBLIC;
 extern void		papplScannerSetLocation(pappl_scanner_t *scanner, const char *value) _PAPPL_PUBLIC;
 extern void		papplScannerSetMaxActiveJobs(pappl_scanner_t *scanner, size_t max_active_jobs) _PAPPL_PUBLIC;
 extern void		papplScannerSetMaxCompletedJobs(pappl_scanner_t *scanner, size_t max_completed_jobs) _PAPPL_PUBLIC;
@@ -271,6 +282,9 @@ extern void		papplScannerSetOrganization(pappl_scanner_t *scanner, const char *v
 extern void		papplScannerSetOrganizationalUnit(pappl_scanner_t *scanner, const char *value) _PAPPL_PUBLIC;
 extern void		papplScannerSetReasons(pappl_scanner_t *scanner, pappl_preason_t add, pappl_preason_t remove) _PAPPL_PUBLIC;
 extern void		papplScannerSetScanGroup(pappl_scanner_t *scanner, const char *value) _PAPPL_PUBLIC;
+
+extern pappl_scanner_t	*papplPrinterGetScanner(pappl_printer_t *printer) _PAPPL_PUBLIC;
+extern void		papplPrinterSetScanner(pappl_printer_t *printer, pappl_scanner_t *scanner) _PAPPL_PUBLIC;
 
 
 #  ifdef __cplusplus

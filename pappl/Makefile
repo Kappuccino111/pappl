@@ -51,6 +51,7 @@ LIBOBJS	=	\
 		qrcode-bb.o \
 		qrcode-dataurl.o \
 		scanner.o \
+		scanner-accessors.o \
 		snmp.o \
 		subscription.o \
 		subscription-ipp.o \
