@@ -28,6 +28,7 @@ LIBOBJS	=	\
 		job-filter.o \
 		job-ipp.o \
 		job-process.o \
+		job-scan.o \
 		job.o \
 		link.o \
 		loc.o \

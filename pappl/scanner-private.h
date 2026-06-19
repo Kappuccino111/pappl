@@ -73,6 +73,7 @@ struct _pappl_scanner_s			// Scanner data
 // Functions...
 //
 
+extern void		_papplScannerCheckJobsNoLock(pappl_scanner_t *scanner) _PAPPL_PRIVATE;
 extern void		_papplScannerCopyAttributesNoLock(pappl_scanner_t *scanner, ipp_t *ipp, cups_array_t *ra) _PAPPL_PRIVATE;
 extern void		_papplScannerCopyStateNoLock(pappl_scanner_t *scanner, ipp_tag_t group_tag, ipp_t *ipp, cups_array_t *ra) _PAPPL_PRIVATE;
 extern void		_papplScannerDelete(pappl_scanner_t *scanner) _PAPPL_PRIVATE;
