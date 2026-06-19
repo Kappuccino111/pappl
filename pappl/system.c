@@ -198,6 +198,7 @@ papplSystemCreate(
   system->log_max_size      = 1024 * 1024;
   system->next_client       = 1;
   system->next_printer_id   = 1;
+  system->next_scanner_id   = 1;
   system->subtypes          = subtypes ? strdup(subtypes) : NULL;
   system->tls_only          = tls_only;
   system->admin_gid         = (gid_t)-1;
@@ -353,6 +354,7 @@ papplSystemDelete(
   _papplSystemStopAllExtCommands(system);
 
   cupsArrayDelete(system->printers);
+  cupsArrayDelete(system->scanners);
 
   free(system->uuid);
   free(system->name);
@@ -400,6 +402,7 @@ papplSystemDelete(
 
   cupsRWDestroy(&system->rwlock);
   cupsRWDestroy(&system->printers_rwlock);
+  cupsRWDestroy(&system->scanners_rwlock);
   cupsMutexDestroy(&system->session_mutex);
   cupsMutexDestroy(&system->config_mutex);
   cupsMutexDestroy(&system->log_mutex);

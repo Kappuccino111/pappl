@@ -50,6 +50,7 @@ LIBOBJS	=	\
 		qrcode-base.o \
 		qrcode-bb.o \
 		qrcode-dataurl.o \
+		scanner.o \
 		snmp.o \
 		subscription.o \
 		subscription-ipp.o \
@@ -60,6 +61,7 @@ LIBOBJS	=	\
 		system-loadsave.o \
 		system-loc.o \
 		system-printer.o \
+		system-scanner.o \
 		system-subscription.o \
 		system-webif.o \
 		util.o
@@ -77,6 +79,7 @@ HEADERS	=	\
 		mainloop.h \
 		pappl.h \
 		printer.h \
+		scanner.h \
 		subscription.h \
 		system.h
 
