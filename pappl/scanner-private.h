@@ -79,6 +79,16 @@ extern void		_papplScannerCopyStateNoLock(pappl_scanner_t *scanner, ipp_tag_t gr
 extern void		_papplScannerDelete(pappl_scanner_t *scanner) _PAPPL_PRIVATE;
 extern void		_papplScannerInitDriverData(pappl_sc_driver_data_t *d) _PAPPL_PRIVATE;
 extern void		_papplScannerUnregisterDNSSDNoLock(pappl_scanner_t *scanner) _PAPPL_PRIVATE;
+extern void		_papplScannerWebCancelAllJobs(pappl_client_t *client, pappl_scanner_t *scanner) _PAPPL_PRIVATE;
+extern void		_papplScannerWebConfig(pappl_client_t *client, pappl_scanner_t *scanner) _PAPPL_PRIVATE;
+extern void		_papplScannerWebConfigFinalize(pappl_scanner_t *scanner, size_t num_form, cups_option_t *form) _PAPPL_PRIVATE;
+extern void		_papplScannerWebDefaults(pappl_client_t *client, pappl_scanner_t *scanner) _PAPPL_PRIVATE;
+extern void		_papplScannerWebDelete(pappl_client_t *client, pappl_scanner_t *scanner) _PAPPL_PRIVATE;
+extern void		_papplScannerWebFooter(pappl_client_t *client) _PAPPL_PRIVATE;
+extern void		_papplScannerWebHeader(pappl_client_t *client, pappl_scanner_t *scanner, const char *title, int refresh, const char *label, const char *path_or_url) _PAPPL_PRIVATE;
+extern void		_papplScannerWebHome(pappl_client_t *client, pappl_scanner_t *scanner) _PAPPL_PRIVATE;
+extern void		_papplScannerWebIteratorCallback(pappl_scanner_t *scanner, pappl_client_t *client) _PAPPL_PRIVATE;
+extern void		_papplScannerWebJobs(pappl_client_t *client, pappl_scanner_t *scanner) _PAPPL_PRIVATE;
 
 
 #endif // !_PAPPL_SCANNER_PRIVATE_H_

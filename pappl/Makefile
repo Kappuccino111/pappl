@@ -54,6 +54,7 @@ LIBOBJS	=	\
 		scanner.o \
 		scanner-accessors.o \
 		scanner-driver.o \
+		scanner-webif.o \
 		snmp.o \
 		subscription.o \
 		subscription-ipp.o \

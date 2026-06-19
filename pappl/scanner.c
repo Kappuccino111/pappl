@@ -241,6 +241,32 @@ papplScannerCreate(
   if (system->sc_create_cb)
     (system->sc_create_cb)(scanner, system->sc_driver_cbdata);
 
+  // Register web interface...
+  {
+    char path[1024];			// Resource path
+
+    papplSystemAddResourceCallback(system, scanner->uriname, "text/html", (pappl_resource_cb_t)_papplScannerWebHome, scanner);
+
+    snprintf(path, sizeof(path), "%s/cancelall", scanner->uriname);
+    papplSystemAddResourceCallback(system, path, "text/html", (pappl_resource_cb_t)_papplScannerWebCancelAllJobs, scanner);
+
+    if (system->options & PAPPL_SOPTIONS_MULTI_QUEUE)
+    {
+      snprintf(path, sizeof(path), "%s/delete", scanner->uriname);
+      papplSystemAddResourceCallback(system, path, "text/html", (pappl_resource_cb_t)_papplScannerWebDelete, scanner);
+    }
+
+    snprintf(path, sizeof(path), "%s/config", scanner->uriname);
+    papplSystemAddResourceCallback(system, path, "text/html", (pappl_resource_cb_t)_papplScannerWebConfig, scanner);
+
+    snprintf(path, sizeof(path), "%s/jobs", scanner->uriname);
+    papplSystemAddResourceCallback(system, path, "text/html", (pappl_resource_cb_t)_papplScannerWebJobs, scanner);
+
+    snprintf(path, sizeof(path), "%s/defaults", scanner->uriname);
+    papplSystemAddResourceCallback(system, path, "text/html", (pappl_resource_cb_t)_papplScannerWebDefaults, scanner);
+    papplScannerAddLink(scanner, _PAPPL_LOC("Scanning Defaults"), path, PAPPL_LOPTIONS_NAVIGATION | PAPPL_LOPTIONS_STATUS);
+  }
+
   _papplSystemConfigChanged(system);
 
   return (scanner);
@@ -270,6 +296,44 @@ papplScannerDelete(
   _papplScannerDelete(scanner);
 
   _papplSystemConfigChanged(system);
+}
+
+
+//
+// 'papplScannerFindJob()' - Find a scan job by ID.
+//
+// This function searches a scanner's job arrays for a job with the specified
+// ID.  Returns `NULL` if the job is not found.
+//
+
+pappl_job_t *				// O - Job or `NULL` if not found
+papplScannerFindJob(
+    pappl_scanner_t *scanner,		// I - Scanner
+    int             job_id)		// I - Job ID
+{
+  size_t	i,			// Looping var
+		count;			// Number of jobs
+  pappl_job_t	*job;			// Current job
+
+
+  if (!scanner || job_id < 1)
+    return (NULL);
+
+  _papplRWLockRead(scanner);
+
+  for (i = 0, count = cupsArrayGetCount(scanner->all_jobs); i < count; i ++)
+  {
+    job = (pappl_job_t *)cupsArrayGetElement(scanner->all_jobs, i);
+    if (job->job_id == job_id)
+    {
+      _papplRWUnlock(scanner);
+      return (job);
+    }
+  }
+
+  _papplRWUnlock(scanner);
+
+  return (NULL);
 }
 
 

@@ -227,12 +227,15 @@ struct pappl_sc_driver_data_s		// Scanner driver data
 // Functions...
 //
 
+extern void		papplScannerAddLink(pappl_scanner_t *scanner, const char *label, const char *path_or_url, pappl_loptions_t options) _PAPPL_PUBLIC;
 extern void		papplScannerCancelAllJobs(pappl_scanner_t *scanner) _PAPPL_PUBLIC;
 extern void		papplScannerCloseDevice(pappl_scanner_t *scanner) _PAPPL_PUBLIC;
 
 extern pappl_scanner_t	*papplScannerCreate(pappl_system_t *system, int scanner_id, const char *scanner_name, const char *driver_name, const char *device_id, const char *device_uri) _PAPPL_PUBLIC;
 
 extern void		papplScannerDelete(pappl_scanner_t *scanner) _PAPPL_PUBLIC;
+
+extern pappl_job_t	*papplScannerFindJob(pappl_scanner_t *scanner, int job_id) _PAPPL_PUBLIC;
 
 extern pappl_contact_t	*papplScannerGetContact(pappl_scanner_t *scanner, pappl_contact_t *contact) _PAPPL_PUBLIC;
 extern const char	*papplScannerGetDeviceID(pappl_scanner_t *scanner) _PAPPL_PUBLIC;
