@@ -273,7 +273,7 @@ extern void		papplSystemSetOrganization(pappl_system_t *system, const char *valu
 extern void		papplSystemSetOrganizationalUnit(pappl_system_t *system, const char *value) _PAPPL_PUBLIC;
 extern void		papplSystemSetPassword(pappl_system_t *system, const char *hash) _PAPPL_PUBLIC;
 extern void		papplSystemSetPrinterDrivers(pappl_system_t *system, size_t num_drivers, pappl_pr_driver_t *drivers, pappl_pr_autoadd_cb_t autoadd_cb, pappl_pr_create_cb_t create_cb, pappl_pr_driver_cb_t driver_cb, void *data) _PAPPL_PUBLIC;
-extern void		papplSystemSetScannerDrivers(pappl_system_t *system, size_t num_drivers, pappl_pr_driver_t *drivers, pappl_sc_autoadd_cb_t autoadd_cb, pappl_sc_create_cb_t create_cb, pappl_sc_driver_cb_t driver_cb, void *data) _PAPPL_PUBLIC;
+extern void		papplSystemSetScannerDrivers(pappl_system_t *system, size_t num_drivers, pappl_sc_driver_t *drivers, pappl_sc_autoadd_cb_t autoadd_cb, pappl_sc_create_cb_t create_cb, pappl_sc_driver_cb_t driver_cb, void *data) _PAPPL_PUBLIC;
 extern void		papplSystemSetRegisterCallbacks(pappl_system_t *system, pappl_pr_register_cb_t reg_cb, pappl_pr_deregister_cb_t dereg_cb, void *data) _PAPPL_PUBLIC;
 extern void		papplSystemSetSaveCallback(pappl_system_t *system, pappl_save_cb_t cb, void *data) _PAPPL_PUBLIC;
 extern void		papplSystemSetUUID(pappl_system_t *system, const char *value) _PAPPL_PUBLIC;

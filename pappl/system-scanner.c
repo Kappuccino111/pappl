@@ -122,7 +122,7 @@ void
 papplSystemSetScannerDrivers(
     pappl_system_t       *system,	// I - System
     size_t               num_drivers,	// I - Number of drivers
-    pappl_pr_driver_t    *drivers,	// I - Drivers
+    pappl_sc_driver_t    *drivers,	// I - Drivers
     pappl_sc_autoadd_cb_t autoadd_cb,	// I - Auto-add callback or `NULL`
     pappl_sc_create_cb_t create_cb,	// I - Creation callback or `NULL`
     pappl_sc_driver_cb_t driver_cb,	// I - Driver initialization callback

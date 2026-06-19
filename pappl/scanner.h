@@ -80,6 +80,19 @@ typedef unsigned pappl_scan_intent_t;	// Bitfield for eSCL "Intent" values
 
 
 //
+// Structures...
+//
+
+struct pappl_sc_driver_s			// Scanner driver information
+{
+  const char	*name;				// Driver name
+  const char	*description;			// Driver description (make and model)
+  const char	*device_id;			// IEEE-1284 device ID
+  void		*extension;			// Extension data pointer
+};
+
+
+//
 // Callback function types...
 //
 

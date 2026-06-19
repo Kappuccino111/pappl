@@ -134,7 +134,7 @@ struct _pappl_system_s			// System data
   int			default_scanner_id;	// Default scanner-id
   int			next_scanner_id;	// Next scanner-id (separate ID space)
   size_t		num_sc_drivers;		// Number of scanner drivers
-  pappl_pr_driver_t	*sc_drivers;		// Scanner drivers
+  pappl_sc_driver_t	*sc_drivers;		// Scanner drivers
   pappl_sc_autoadd_cb_t	sc_autoadd_cb;		// Scanner auto-add callback
   pappl_sc_create_cb_t	sc_create_cb;		// Scanner creation callback
   pappl_sc_driver_cb_t	sc_driver_cb;		// Scanner driver init callback
