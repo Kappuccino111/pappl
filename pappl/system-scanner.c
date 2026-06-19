@@ -8,6 +8,7 @@
 //
 
 #include "pappl-private.h"
+#include "device-private.h"
 
 
 //
@@ -111,6 +112,77 @@ _papplSystemFindScanner(
 
 
 //
+// 'papplSystemCreateScanners()' - Create newly discovered scanners.
+//
+// This function lists all devices specified by "types" and attempts to add any
+// new scanners that are found.  The callback function "cb" is invoked for each
+// scanner that is added.
+//
+
+bool					// O - `true` if scanners were added, `false` otherwise
+papplSystemCreateScanners(
+    pappl_system_t       *system,	// I - System
+    pappl_devtype_t      types,		// I - Device types
+    pappl_sc_create_cb_t cb,		// I - Callback function
+    void                 *cb_data)	// I - Callback data
+{
+  bool			ret = false;	// Return value
+  cups_array_t		*devices;	// Device array
+  _pappl_dinfo_t	*d;		// Current device information
+
+
+  // List the devices...
+  devices = _papplDeviceInfoCreateArray();
+
+  papplDeviceList(types, (pappl_device_cb_t)_papplDeviceInfoCallback, devices, papplLogDevice, system);
+
+  // Loop through the devices to find new stuff...
+  for (d = (_pappl_dinfo_t *)cupsArrayGetFirst(devices); d; d = (_pappl_dinfo_t *)cupsArrayGetNext(devices))
+  {
+    pappl_scanner_t	*scanner = NULL;
+					// New scanner
+
+    // See if there is already a scanner for this device URI...
+    if (papplSystemFindScanner(system, NULL, 0, d->device_uri))
+      continue;			// Scanner with this device URI exists
+
+    // Then try creating the scanner...
+    if ((scanner = papplScannerCreate(system, 0, d->device_info, "auto", d->device_id, d->device_uri)) == NULL)
+      continue;			// Scanner with this name exists
+
+    // Created, return true and invoke the callback if provided...
+    ret = true;
+
+    if (cb)
+      (cb)(scanner, cb_data);
+  }
+
+  cupsArrayDelete(devices);
+
+  return (ret);
+}
+
+
+//
+// 'papplSystemFindScanner()' - Find a scanner by resource, ID, or device URI.
+//
+// This function finds a scanner contained in the system using its resource
+// path, unique integer identifier, or device URI.  If none of these is
+// specified, the current default scanner is returned.
+//
+
+pappl_scanner_t *			// O - Scanner or `NULL` if none
+papplSystemFindScanner(
+    pappl_system_t *system,		// I - System
+    const char     *resource,		// I - Resource path or `NULL`
+    int            scanner_id,		// I - Scanner ID or `0`
+    const char     *device_uri)		// I - Device URI or `NULL`
+{
+  return (_papplSystemFindScanner(system, resource, scanner_id, device_uri));
+}
+
+
+//
 // 'papplSystemSetScannerDrivers()' - Set the list of scanner drivers and the
 //                                    driver callbacks.
 //
@@ -150,3 +222,4 @@ compare_scanners(pappl_scanner_t *a,	// I - First scanner
 {
   return (strcmp(a->name, b->name));
 }
+
