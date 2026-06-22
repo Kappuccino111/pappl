@@ -150,6 +150,13 @@ papplSystemCreateScanners(
     if ((scanner = papplScannerCreate(system, 0, d->device_info, "auto", d->device_id, d->device_uri)) == NULL)
       continue;			// Scanner with this name exists
 
+    // Register the DNS-SD service...
+    _papplRWLockRead(scanner->system);
+      _papplRWLockRead(scanner);
+	_papplScannerRegisterDNSSDNoLock(scanner);
+      _papplRWUnlock(scanner);
+    _papplRWUnlock(scanner->system);
+
     // Created, return true and invoke the callback if provided...
     ret = true;
 

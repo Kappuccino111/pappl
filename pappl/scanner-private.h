@@ -80,6 +80,7 @@ extern void		_papplScannerDelete(pappl_scanner_t *scanner) _PAPPL_PRIVATE;
 extern void		_papplScannerInitDriverData(pappl_sc_driver_data_t *d) _PAPPL_PRIVATE;
 extern void		_papplScannerProcessESCL(pappl_client_t *client) _PAPPL_PRIVATE;
 extern void		_papplScannerProcessIPP(pappl_client_t *client) _PAPPL_PRIVATE;
+extern bool		_papplScannerRegisterDNSSDNoLock(pappl_scanner_t *scanner) _PAPPL_PRIVATE;
 extern void		_papplScannerUnregisterDNSSDNoLock(pappl_scanner_t *scanner) _PAPPL_PRIVATE;
 extern void		_papplScannerWebCancelAllJobs(pappl_client_t *client, pappl_scanner_t *scanner) _PAPPL_PRIVATE;
 extern void		_papplScannerWebConfig(pappl_client_t *client, pappl_scanner_t *scanner) _PAPPL_PRIVATE;

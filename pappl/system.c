@@ -658,6 +658,18 @@ papplSystemRun(pappl_system_t *system)	// I - System
   }
   cupsRWUnlock(&system->printers_rwlock);
 
+  // Start up scanners...
+  cupsRWLockRead(&system->scanners_rwlock);
+  for (i = 0, count = cupsArrayGetCount(system->scanners); i < count; i ++)
+  {
+    pappl_scanner_t *scanner = (pappl_scanner_t *)cupsArrayGetElement(system->scanners, i);
+
+    // Advertise via DNS-SD as needed...
+    if (scanner->dns_sd_name)
+      _papplScannerRegisterDNSSDNoLock(scanner);
+  }
+  cupsRWUnlock(&system->scanners_rwlock);
+
   // Start the USB gadget as needed...
   if ((system->options & PAPPL_SOPTIONS_USB_PRINTER) && (printer = papplSystemFindPrinter(system, NULL, system->default_printer_id, NULL)) != NULL)
   {
@@ -807,6 +819,16 @@ papplSystemRun(pappl_system_t *system)	// I - System
       }
       cupsRWUnlock(&system->printers_rwlock);
 
+      cupsRWLockRead(&system->scanners_rwlock);
+      for (i = 0, count = cupsArrayGetCount(system->scanners); i < count; i ++)
+      {
+	pappl_scanner_t *scanner = (pappl_scanner_t *)cupsArrayGetElement(system->scanners, i);
+
+        if (scanner->dns_sd_collision || force_dns_sd)
+          _papplScannerRegisterDNSSDNoLock(scanner);
+      }
+      cupsRWUnlock(&system->scanners_rwlock);
+
       system->dns_sd_any_collision = false;
       system->dns_sd_host_changes  = dns_sd_host_changes;
     }
@@ -935,6 +957,17 @@ papplSystemRun(pappl_system_t *system)	// I - System
       _papplPrinterUnregisterDNSSDNoLock(printer);
   }
   cupsRWUnlock(&system->printers_rwlock);
+
+  cupsRWLockRead(&system->scanners_rwlock);
+  for (i = 0, count = cupsArrayGetCount(system->scanners); i < count; i ++)
+  {
+    pappl_scanner_t *scanner = (pappl_scanner_t *)cupsArrayGetElement(system->scanners, i);
+
+    // Remove scanner DNS-SD advertising...
+    if (scanner->dns_sd_name)
+      _papplScannerUnregisterDNSSDNoLock(scanner);
+  }
+  cupsRWUnlock(&system->scanners_rwlock);
 
   system->is_running = false;
 

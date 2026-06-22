@@ -833,6 +833,8 @@ papplScannerSetDNSSDName(
 
   if (!value)
     _papplScannerUnregisterDNSSDNoLock(scanner);
+  else
+    _papplScannerRegisterDNSSDNoLock(scanner);
 
   _papplRWUnlock(scanner);
 
@@ -867,6 +869,8 @@ papplScannerSetGeoLocation(
   free(scanner->geo_location);
   scanner->geo_location = value && *value ? strdup(value) : NULL;
   scanner->config_time  = time(NULL);
+
+  _papplScannerRegisterDNSSDNoLock(scanner);
 
   _papplRWUnlock(scanner);
 
@@ -919,6 +923,8 @@ papplScannerSetLocation(
   free(scanner->location);
   scanner->location    = value ? strdup(value) : NULL;
   scanner->config_time = time(NULL);
+
+  _papplScannerRegisterDNSSDNoLock(scanner);
 
   _papplRWUnlock(scanner);
 

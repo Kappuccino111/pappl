@@ -391,9 +391,7 @@ _papplScannerDelete(
 
 
 //
-// '_papplScannerUnregisterDNSSDNoLock()' - Unregister DNS-SD services.
-//
-// This is a stub for PR 1; real DNS-SD registration is in PR 8.
+// '_papplScannerUnregisterDNSSDNoLock()' - Unregister scanner DNS-SD services.
 //
 
 void
