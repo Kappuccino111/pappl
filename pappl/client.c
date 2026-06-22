@@ -381,6 +381,13 @@ _papplClientProcessHTTP(
 	return (papplClientRespond(client, HTTP_STATUS_NOT_FOUND, NULL, NULL, 0, 0));
 
     case HTTP_STATE_GET :
+        // Check for eSCL requests...
+        if (!strncmp(client->uri, "/eSCL/", 6))
+        {
+          _papplScannerProcessESCL(client);
+          return (true);
+        }
+
         // See if we have a matching resource to serve...
         if ((resource = _papplSystemFindResourceForPath(client->system, client->uri)) != NULL)
         {
@@ -434,6 +441,13 @@ _papplClientProcessHTTP(
 	return (papplClientRespond(client, HTTP_STATUS_NOT_FOUND, NULL, NULL, 0, 0));
 
     case HTTP_STATE_POST :
+        // Check for eSCL requests...
+        if (!strncmp(client->uri, "/eSCL/", 6))
+        {
+          _papplScannerProcessESCL(client);
+          return (true);
+        }
+
         if (!strcmp(httpGetField(client->http, HTTP_FIELD_CONTENT_TYPE), "application/ipp"))
         {
 	  // Read the IPP request...
@@ -473,6 +487,14 @@ _papplClientProcessHTTP(
 	}
 
     default :
+        // Handle DELETE for eSCL job cancellation...
+        if (client->operation == HTTP_STATE_DELETE &&
+            !strncmp(client->uri, "/eSCL/", 6))
+        {
+          _papplScannerProcessESCL(client);
+          return (true);
+        }
+
         break; // Anti-compiler-warning-code
   }
 
