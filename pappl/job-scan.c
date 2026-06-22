@@ -16,17 +16,102 @@
 
 static void	finish_scan_job(pappl_job_t *job);
 static bool	start_scan_job(pappl_job_t *job);
+static const char *scan_color_mode_string(pappl_scan_color_mode_t value);
+static const char *scan_content_string(pappl_scan_content_t value);
+static const char *scan_input_source_string(pappl_scan_input_source_t value);
+static const char *scan_intent_string(pappl_scan_intent_t value);
+
+
+static const char *	scan_color_mode_string(
+    pappl_scan_color_mode_t value)	// I - Color mode bit value
+{
+  switch (value)
+  {
+    case PAPPL_SCAN_COLOR_MODE_BLACK_AND_WHITE_1 :
+        return ("black-and-white");
+    case PAPPL_SCAN_COLOR_MODE_GRAYSCALE_8 :
+        return ("grayscale");
+    case PAPPL_SCAN_COLOR_MODE_GRAYSCALE_16 :
+        return ("grayscale16");
+    case PAPPL_SCAN_COLOR_MODE_RGB_24 :
+        return ("color");
+    case PAPPL_SCAN_COLOR_MODE_RGB_48 :
+        return ("color48");
+    default :
+        return (NULL);
+  }
+}
+
+
+static const char *	scan_content_string(
+    pappl_scan_content_t value)		// I - Content type bit value
+{
+  switch (value)
+  {
+    case PAPPL_SCAN_CONTENT_AUTO :
+        return ("auto");
+    case PAPPL_SCAN_CONTENT_HALFTONE :
+        return ("halftone");
+    case PAPPL_SCAN_CONTENT_LINE_ART :
+        return ("line-art");
+    case PAPPL_SCAN_CONTENT_MAGAZINE :
+        return ("magazine");
+    case PAPPL_SCAN_CONTENT_PHOTO :
+        return ("photo");
+    case PAPPL_SCAN_CONTENT_TEXT :
+        return ("text");
+    case PAPPL_SCAN_CONTENT_TEXT_AND_PHOTO :
+        return ("text-and-photo");
+    default :
+        return (NULL);
+  }
+}
+
+
+static const char *	scan_input_source_string(
+    pappl_scan_input_source_t value)	// I - Input source bit value
+{
+  switch (value)
+  {
+    case PAPPL_SCAN_INPUT_SOURCE_PLATEN :
+        return ("platen");
+    case PAPPL_SCAN_INPUT_SOURCE_ADF :
+        return ("adf");
+    case PAPPL_SCAN_INPUT_SOURCE_CAMERA :
+        return ("camera");
+    default :
+        return (NULL);
+  }
+}
+
+
+static const char *	scan_intent_string(
+    pappl_scan_intent_t value)		// I - Intent bit value
+{
+  switch (value)
+  {
+    case PAPPL_SCAN_INTENT_DOCUMENT :
+        return ("document");
+    case PAPPL_SCAN_INTENT_PHOTO :
+        return ("photo");
+    case PAPPL_SCAN_INTENT_PREVIEW :
+        return ("preview");
+    case PAPPL_SCAN_INTENT_TEXT_AND_GRAPHIC :
+        return ("text-and-graphic");
+    case PAPPL_SCAN_INTENT_BUSINESS_CARD :
+        return ("business-card");
+    default :
+        return (NULL);
+  }
+}
 
 
 //
 // 'papplJobCreateScanOptions()' - Create the scan options for a job.
 //
-// This function allocates a scan options structure and computes the scan
-// options for a job based upon the scan ticket attributes and the default
-// values set in the scanner driver data.
-//
-// The caller is responsible for freeing the options using the
-// @link papplJobDeleteScanOptions@ function.
+// This function allocates a scan options structure and returns a copy of the
+// eSCL scan options stored on the job.  The caller is responsible for freeing
+// the options using the @link papplJobDeleteScanOptions@ function.
 //
 
 pappl_sc_options_t *			// O - Scan options or `NULL` on error
@@ -35,8 +120,6 @@ papplJobCreateScanOptions(
 {
   pappl_sc_options_t	*options;	// New options data
   pappl_scanner_t	*scanner;	// Scanner
-  ipp_attribute_t	*attr;		// Attribute
-  const char		*value;		// String value
 
 
   // Range check input...
@@ -53,135 +136,25 @@ papplJobCreateScanOptions(
 
   _papplRWLockRead(scanner);
 
-  // scan-intent
-  if ((attr = ippFindAttribute(job->attrs, "scan-intent", IPP_TAG_KEYWORD)) != NULL)
+  // Copy the canonical eSCL scan options stored on the job...
+  if (job->scan_options)
   {
-    value = ippGetString(attr, 0, NULL);
-    if (!strcmp(value, "document"))
-      options->intent = PAPPL_SCAN_INTENT_DOCUMENT;
-    else if (!strcmp(value, "photo"))
-      options->intent = PAPPL_SCAN_INTENT_PHOTO;
-    else if (!strcmp(value, "preview"))
-      options->intent = PAPPL_SCAN_INTENT_PREVIEW;
-    else if (!strcmp(value, "text-and-graphic"))
-      options->intent = PAPPL_SCAN_INTENT_TEXT_AND_GRAPHIC;
-    else if (!strcmp(value, "business-card"))
-      options->intent = PAPPL_SCAN_INTENT_BUSINESS_CARD;
-    else
-      options->intent = scanner->driver_data.intent_default;
+    *options = *job->scan_options;
   }
   else
   {
-    options->intent = scanner->driver_data.intent_default;
-  }
-
-  // input-source
-  if ((attr = ippFindAttribute(job->attrs, "input-source", IPP_TAG_KEYWORD)) != NULL)
-  {
-    value = ippGetString(attr, 0, NULL);
-    if (!strcmp(value, "platen"))
-      options->input_source = PAPPL_SCAN_INPUT_SOURCE_PLATEN;
-    else if (!strcmp(value, "adf"))
-      options->input_source = PAPPL_SCAN_INPUT_SOURCE_ADF;
-    else if (!strcmp(value, "camera"))
-      options->input_source = PAPPL_SCAN_INPUT_SOURCE_CAMERA;
-    else
-      options->input_source = scanner->driver_data.input_source_default;
-  }
-  else
-  {
+    // Defensive fallback to driver defaults...
+    options->intent       = scanner->driver_data.intent_default;
     options->input_source = scanner->driver_data.input_source_default;
-  }
-
-  // scan-color-mode
-  if ((attr = ippFindAttribute(job->attrs, "scan-color-mode", IPP_TAG_KEYWORD)) != NULL)
-  {
-    value = ippGetString(attr, 0, NULL);
-    if (!strcmp(value, "black-and-white"))
-      options->color_mode = PAPPL_SCAN_COLOR_MODE_BLACK_AND_WHITE_1;
-    else if (!strcmp(value, "grayscale"))
-      options->color_mode = PAPPL_SCAN_COLOR_MODE_GRAYSCALE_8;
-    else if (!strcmp(value, "grayscale16"))
-      options->color_mode = PAPPL_SCAN_COLOR_MODE_GRAYSCALE_16;
-    else if (!strcmp(value, "color"))
-      options->color_mode = PAPPL_SCAN_COLOR_MODE_RGB_24;
-    else if (!strcmp(value, "color48"))
-      options->color_mode = PAPPL_SCAN_COLOR_MODE_RGB_48;
-    else
-      options->color_mode = scanner->driver_data.color_default;
-  }
-  else
-  {
-    options->color_mode = scanner->driver_data.color_default;
-  }
-
-  // scan-content-type
-  if ((attr = ippFindAttribute(job->attrs, "scan-content-type", IPP_TAG_KEYWORD)) != NULL)
-  {
-    value = ippGetString(attr, 0, NULL);
-    if (!strcmp(value, "auto"))
-      options->content_type = PAPPL_SCAN_CONTENT_AUTO;
-    else if (!strcmp(value, "halftone"))
-      options->content_type = PAPPL_SCAN_CONTENT_HALFTONE;
-    else if (!strcmp(value, "line-art"))
-      options->content_type = PAPPL_SCAN_CONTENT_LINE_ART;
-    else if (!strcmp(value, "magazine"))
-      options->content_type = PAPPL_SCAN_CONTENT_MAGAZINE;
-    else if (!strcmp(value, "photo"))
-      options->content_type = PAPPL_SCAN_CONTENT_PHOTO;
-    else if (!strcmp(value, "text"))
-      options->content_type = PAPPL_SCAN_CONTENT_TEXT;
-    else if (!strcmp(value, "text-and-photo"))
-      options->content_type = PAPPL_SCAN_CONTENT_TEXT_AND_PHOTO;
-    else
-      options->content_type = scanner->driver_data.content_default;
-  }
-  else
-  {
+    options->color_mode   = scanner->driver_data.color_default;
     options->content_type = scanner->driver_data.content_default;
-  }
-
-  // scanner-resolution
-  if ((attr = ippFindAttribute(job->attrs, "scanner-resolution", IPP_TAG_RESOLUTION)) != NULL)
-  {
-    ipp_res_t units;			// Resolution units
-
-    options->x_resolution = ippGetResolution(attr, 0, &options->y_resolution, &units);
-  }
-  else
-  {
     options->x_resolution = scanner->driver_data.x_default;
     options->y_resolution = scanner->driver_data.y_default;
   }
 
-  // document-format
-  if ((attr = ippFindAttribute(job->attrs, "document-format", IPP_TAG_MIMETYPE)) != NULL)
+  // Apply defaults for scan region if needed...
+  if (options->scan_width <= 0)
   {
-    cupsCopyString(options->format, ippGetString(attr, 0, NULL), sizeof(options->format));
-  }
-  else
-  {
-    // Default based on intent: JPEG for photo/preview, PDF for document
-    if (options->intent == PAPPL_SCAN_INTENT_PHOTO || options->intent == PAPPL_SCAN_INTENT_PREVIEW)
-      cupsCopyString(options->format, "image/jpeg", sizeof(options->format));
-    else
-      cupsCopyString(options->format, "application/pdf", sizeof(options->format));
-  }
-
-  // scan-region (x, y, width, height in 1/300")
-  if ((attr = ippFindAttribute(job->attrs, "scan-region-x-offset", IPP_TAG_INTEGER)) != NULL)
-    options->scan_x = ippGetInteger(attr, 0);
-
-  if ((attr = ippFindAttribute(job->attrs, "scan-region-y-offset", IPP_TAG_INTEGER)) != NULL)
-    options->scan_y = ippGetInteger(attr, 0);
-
-  if ((attr = ippFindAttribute(job->attrs, "scan-region-width", IPP_TAG_INTEGER)) != NULL)
-  {
-    options->scan_width = ippGetInteger(attr, 0);
-  }
-  else
-  {
-    // Default to max scan area based on input source
     if (options->input_source == PAPPL_SCAN_INPUT_SOURCE_ADF &&
         scanner->driver_data.adf_max_width > 0)
       options->scan_width = scanner->driver_data.adf_max_width;
@@ -189,13 +162,8 @@ papplJobCreateScanOptions(
       options->scan_width = scanner->driver_data.platen_max_width;
   }
 
-  if ((attr = ippFindAttribute(job->attrs, "scan-region-height", IPP_TAG_INTEGER)) != NULL)
+  if (options->scan_height <= 0)
   {
-    options->scan_height = ippGetInteger(attr, 0);
-  }
-  else
-  {
-    // Default to max scan area based on input source
     if (options->input_source == PAPPL_SCAN_INPUT_SOURCE_ADF &&
         scanner->driver_data.adf_max_height > 0)
       options->scan_height = scanner->driver_data.adf_max_height;
@@ -203,33 +171,19 @@ papplJobCreateScanOptions(
       options->scan_height = scanner->driver_data.platen_max_height;
   }
 
-  // duplex
-  if ((attr = ippFindAttribute(job->attrs, "duplex", IPP_TAG_BOOLEAN)) != NULL)
-    options->duplex = ippGetBoolean(attr, 0);
-  else
-    options->duplex = false;
+  // Apply default format if empty...
+  if (!options->format[0])
+  {
+    if (options->intent == PAPPL_SCAN_INTENT_PHOTO ||
+        options->intent == PAPPL_SCAN_INTENT_PREVIEW)
+      cupsCopyString(options->format, "image/jpeg", sizeof(options->format));
+    else
+      cupsCopyString(options->format, "application/pdf", sizeof(options->format));
+  }
 
-  // brightness
-  if ((attr = ippFindAttribute(job->attrs, "brightness", IPP_TAG_INTEGER)) != NULL)
-    options->brightness = ippGetInteger(attr, 0);
-
-  // contrast
-  if ((attr = ippFindAttribute(job->attrs, "contrast", IPP_TAG_INTEGER)) != NULL)
-    options->contrast = ippGetInteger(attr, 0);
-
-  // compression quality
-  if ((attr = ippFindAttribute(job->attrs, "compression", IPP_TAG_INTEGER)) != NULL)
-    options->compression = ippGetInteger(attr, 0);
-  else
-    options->compression = 80;		// Default JPEG quality
-
-  // threshold
-  if ((attr = ippFindAttribute(job->attrs, "threshold", IPP_TAG_INTEGER)) != NULL)
-    options->threshold = ippGetInteger(attr, 0);
-
-  // sharpen
-  if ((attr = ippFindAttribute(job->attrs, "sharpen", IPP_TAG_INTEGER)) != NULL)
-    options->sharpen = ippGetInteger(attr, 0);
+  // Apply default compression if not set...
+  if (options->compression <= 0)
+    options->compression = 80;
 
   _papplRWUnlock(scanner);
 
@@ -332,7 +286,17 @@ _papplJobCreateScan(
 
   // Assign job ID and generate URIs...
   job->job_id     = scanner->next_job_id++;
-  job->log_prefix = _papplLogMakePrefix(NULL, job);
+  // Generate log prefix for scan jobs...
+  {
+    char prefix[256];
+
+    if (scanner->system->options & PAPPL_SOPTIONS_MULTI_QUEUE)
+      snprintf(prefix, sizeof(prefix), "[Job %s-%d]", scanner->name, job->job_id);
+    else
+      snprintf(prefix, sizeof(prefix), "[Job %d]", job->job_id);
+
+    job->log_prefix = strdup(prefix);
+  }
 
   httpAssembleURIf(HTTP_URI_CODING_ALL, job_uri, sizeof(job_uri), "ipps",
                    NULL, scanner->system->hostname, scanner->system->port,
@@ -354,7 +318,24 @@ _papplJobCreateScan(
   ippAddString(job->attrs, IPP_TAG_JOB, IPP_TAG_URI, "job-uuid", NULL,
                job_uuid);
 
-  // Store scan options as IPP attributes for later retrieval...
+  // Store the canonical eSCL scan options on the job.  This is the source of
+  // truth used by papplJobCreateScanOptions() and _papplJobProcessScan().
+  if ((job->scan_options = calloc(1, sizeof(pappl_sc_options_t))) != NULL)
+    *job->scan_options = *options;
+
+  // Store scan options as IPP attributes for introspection via
+  // Get-Job-Attributes...
+  ippAddString(job->attrs, IPP_TAG_JOB, IPP_TAG_KEYWORD, "scan-intent", NULL,
+               scan_intent_string(options->intent));
+  ippAddString(job->attrs, IPP_TAG_JOB, IPP_TAG_KEYWORD, "input-source", NULL,
+               scan_input_source_string(options->input_source));
+  ippAddString(job->attrs, IPP_TAG_JOB, IPP_TAG_KEYWORD, "scan-color-mode", NULL,
+               scan_color_mode_string(options->color_mode));
+  ippAddString(job->attrs, IPP_TAG_JOB, IPP_TAG_KEYWORD, "scan-content-type", NULL,
+               scan_content_string(options->content_type));
+  ippAddResolution(job->attrs, IPP_TAG_JOB, "scanner-resolution",
+                   options->x_resolution, options->y_resolution,
+                   IPP_RES_PER_INCH);
   ippAddString(job->attrs, IPP_TAG_JOB, IPP_TAG_MIMETYPE, "document-format",
                NULL, options->format);
   ippAddInteger(job->attrs, IPP_TAG_JOB, IPP_TAG_INTEGER,
@@ -365,6 +346,17 @@ _papplJobCreateScan(
                 "scan-region-width", options->scan_width);
   ippAddInteger(job->attrs, IPP_TAG_JOB, IPP_TAG_INTEGER,
                 "scan-region-height", options->scan_height);
+  ippAddBoolean(job->attrs, IPP_TAG_JOB, "duplex", options->duplex);
+  ippAddInteger(job->attrs, IPP_TAG_JOB, IPP_TAG_INTEGER,
+                "brightness", options->brightness);
+  ippAddInteger(job->attrs, IPP_TAG_JOB, IPP_TAG_INTEGER,
+                "contrast", options->contrast);
+  ippAddInteger(job->attrs, IPP_TAG_JOB, IPP_TAG_INTEGER,
+                "compression", options->compression);
+  ippAddInteger(job->attrs, IPP_TAG_JOB, IPP_TAG_INTEGER,
+                "threshold", options->threshold);
+  ippAddInteger(job->attrs, IPP_TAG_JOB, IPP_TAG_INTEGER,
+                "sharpen", options->sharpen);
 
   // Add to job arrays...
   cupsArrayAdd(scanner->all_jobs, job);

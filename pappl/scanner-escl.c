@@ -321,10 +321,11 @@ escl_post_scan_jobs(
   _papplRWUnlock(scanner);
 
   // Return 201 Created with Location header...
+  // Use papplClientRespondCreated() because papplClientRespond() clears
+  // HTTP fields, which would wipe out the Location header.
   snprintf(location, sizeof(location), "/eSCL/ScanJobs/%d", job->job_id);
 
-  httpSetField(client->http, HTTP_FIELD_LOCATION, location);
-  papplClientRespond(client, HTTP_STATUS_CREATED, NULL, NULL, 0, 0);
+  papplClientRespondCreated(client, location);
 }
 
 

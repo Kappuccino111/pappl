@@ -26,6 +26,8 @@
 // Types and structures...
 //
 
+typedef struct pappl_sc_options_s pappl_sc_options_t;	// Forward declaration for eSCL scan options
+
 typedef struct _pappl_doc_s		// Document data
 {
   ipp_t			*attrs;			// Template/Description attributes
@@ -80,6 +82,7 @@ struct _pappl_job_s			// Job data
   bool			streaming;		// Streaming job?
   void			*data;			// Per-job driver data
   bool			is_scan_job;		// Is this a scan job?
+  pappl_sc_options_t	*scan_options;		// eSCL scan job options (canonical)
   int			scan_pages_ready;	// Number of scanned pages ready
   int			scan_pages_sent;	// Number of pages sent to client
   bool			scan_complete;		// All pages scanned?

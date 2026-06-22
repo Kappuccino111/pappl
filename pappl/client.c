@@ -674,6 +674,56 @@ papplClientRespondRedirect(
 
 
 //
+// 'papplClientRespondCreated()' - Respond with a 201 Created and Location.
+//
+// This function sends a HTTP 201 Created response with the specified
+// Location header, which is used by resource-creating endpoints such as
+// eSCL's POST /ScanJobs. It follows the same pattern as
+// @link papplClientRespondRedirect@: it clears the HTTP fields first and
+// then sets the Location header so it is not wiped out by the clear.
+//
+// The "location" argument may be either a relative path (starting with '/')
+// or an absolute URL.
+//
+
+bool					// O - `true` on success, `false` otherwise
+papplClientRespondCreated(
+    pappl_client_t *client,		// I - Client
+    const char     *location)		// I - Location header (path or URL)
+{
+  papplLogClient(client, PAPPL_LOGLEVEL_INFO, "Created %s", location);
+
+  // Send the HTTP response header...
+  httpClearFields(client->http);
+  httpSetField(client->http, HTTP_FIELD_SERVER, papplSystemGetServerHeader(client->system));
+  httpSetLength(client->http, 0);
+
+  if (*location == '/' || !strchr(location, ':'))
+  {
+    // Generate an absolute URL...
+    char	url[1024];		// Absolute URL
+
+    if (*location == '/')
+      httpAssembleURI(HTTP_URI_CODING_ALL, url, sizeof(url), httpIsEncrypted(client->http) ? "https" : "http", NULL, client->host_field, client->host_port, location);
+    else
+      httpAssembleURIf(HTTP_URI_CODING_ALL, url, sizeof(url), httpIsEncrypted(client->http) ? "https" : "http", NULL, client->host_field, client->host_port, "/%s", location);
+
+    httpSetField(client->http, HTTP_FIELD_LOCATION, url);
+  }
+  else
+  {
+    // The location is already an absolute URL...
+    httpSetField(client->http, HTTP_FIELD_LOCATION, location);
+  }
+
+  if (!httpWriteResponse(client->http, HTTP_STATUS_CREATED))
+    return (false);
+
+  return (httpWrite(client->http, "", 0) >= 0);
+}
+
+
+//
 // '_papplClientRun()' - Process client requests on a thread.
 //
 
