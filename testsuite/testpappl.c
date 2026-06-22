@@ -5609,7 +5609,7 @@ test_scan(pappl_system_t *system)	// I - System
   _papplTestBegin("scan: papplScannerGetPath");
   {
     char path[256];
-    if (papplScannerGetPath(scanner, "/config", path, sizeof(path)) && path[0] == '/')
+    if (papplScannerGetPath(scanner, "config", path, sizeof(path)) && path[0] == '/')
       _papplTestEndMessage(true, "'%s'", path);
     else
     {
