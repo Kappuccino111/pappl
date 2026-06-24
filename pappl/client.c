@@ -15,6 +15,8 @@
 // Local functions...
 //
 
+static bool	_papplClientMakeHostField(pappl_client_t *client, char *buffer, size_t bufsize);
+static void	_papplClientMakeURL(pappl_client_t *client, const char *scheme, const char *path, char *url, size_t urlsize);
 static bool	eval_if_modified(pappl_client_t *client, _pappl_resource_t *r);
 
 
@@ -593,7 +595,7 @@ papplClientRespond(
 
     code = HTTP_STATUS_MOVED_PERMANENTLY;
 
-    httpAssembleURI(HTTP_URI_CODING_ALL, redirect, sizeof(redirect), "https", NULL, client->host_field, client->host_port, client->uri);
+    _papplClientMakeURL(client, "https", client->uri, redirect, sizeof(redirect));
     httpSetField(client->http, HTTP_FIELD_LOCATION, redirect);
   }
 
@@ -653,10 +655,7 @@ papplClientRespondRedirect(
     // Generate an absolute URL...
     char	url[1024];		// Absolute URL
 
-    if (*path == '/')
-      httpAssembleURI(HTTP_URI_CODING_ALL, url, sizeof(url), httpIsEncrypted(client->http) ? "https" : "http", NULL, client->host_field, client->host_port, path);
-    else
-      httpAssembleURIf(HTTP_URI_CODING_ALL, url, sizeof(url), httpIsEncrypted(client->http) ? "https" : "http", NULL, client->host_field, client->host_port, "/%s", path);
+    _papplClientMakeURL(client, httpIsEncrypted(client->http) ? "https" : "http", path, url, sizeof(url));
 
     httpSetField(client->http, HTTP_FIELD_LOCATION, url);
   }
@@ -703,10 +702,7 @@ papplClientRespondCreated(
     // Generate an absolute URL...
     char	url[1024];		// Absolute URL
 
-    if (*location == '/')
-      httpAssembleURI(HTTP_URI_CODING_ALL, url, sizeof(url), httpIsEncrypted(client->http) ? "https" : "http", NULL, client->host_field, client->host_port, location);
-    else
-      httpAssembleURIf(HTTP_URI_CODING_ALL, url, sizeof(url), httpIsEncrypted(client->http) ? "https" : "http", NULL, client->host_field, client->host_port, "/%s", location);
+    _papplClientMakeURL(client, httpIsEncrypted(client->http) ? "https" : "http", *location == '/' ? location : "/", url, sizeof(url));
 
     httpSetField(client->http, HTTP_FIELD_LOCATION, url);
   }
@@ -833,4 +829,80 @@ eval_if_modified(
 
   // Return the evaluation based on the last modified date, time, and size...
   return ((size != 0 && size != (off_t)r->length) || (date != 0 && date < r->last_modified) || (size == 0 && date == 0));
+}
+
+
+//
+// '_papplClientMakeHostField()' - Format the client host field for use in a URL.
+//
+// IPv6 literal addresses must be wrapped in square brackets when used as a
+// host in a URL.  This function adds them if they are missing.  The result
+// is stored in the supplied buffer.
+//
+// Returns true if the host is an IPv6 literal, false otherwise.
+//
+
+static bool
+_papplClientMakeHostField(
+    pappl_client_t *client,		// I - Client
+    char           *buffer,		// I - Output buffer
+    size_t         bufsize)		// I - Size of output buffer
+{
+  if (client->host_field[0] == '[')
+  {
+    // Already bracketed...
+    cupsCopyString(buffer, client->host_field, bufsize);
+    return (true);
+  }
+  else if (strchr(client->host_field, ':'))
+  {
+    // IPv6 literal without brackets...
+    snprintf(buffer, bufsize, "[%s]", client->host_field);
+    return (true);
+  }
+  else
+  {
+    // IPv4 or hostname...
+    cupsCopyString(buffer, client->host_field, bufsize);
+    return (false);
+  }
+}
+
+
+//
+// '_papplClientMakeURL()' - Build an absolute URL, handling IPv6 literals.
+//
+// libcups' httpAssembleURI() URL-encodes the host argument, which corrupts
+// the square brackets required around IPv6 literals.  This helper builds the
+// URL manually when the host is an IPv6 literal and falls back to
+// httpAssembleURI() for hostnames and IPv4 addresses.
+//
+
+static void
+_papplClientMakeURL(
+    pappl_client_t *client,		// I - Client
+    const char     *scheme,		// I - URL scheme
+    const char     *path,		// I - URL path (starts with '/')
+    char           *url,		// I - Output URL buffer
+    size_t         urlsize)		// I - Size of output buffer
+{
+  char	host[256];			// Host field, bracketed for IPv6
+  bool	ipv6;				// Is host an IPv6 literal?
+
+
+  ipv6 = _papplClientMakeHostField(client, host, sizeof(host));
+
+  if (ipv6)
+  {
+    // Manually assemble: scheme://[host]:port/path
+    // httpAssembleURI() would percent-encode the brackets.
+    if (path[0] == '/')
+      snprintf(url, urlsize, "%s://%s:%d%s", scheme, host, client->host_port, path);
+    else
+      snprintf(url, urlsize, "%s://%s:%d/%s", scheme, host, client->host_port, path);
+  }
+  else
+  {
+    httpAssembleURI(HTTP_URI_CODING_ALL, url, urlsize, scheme, NULL, host, client->host_port, path);
+  }
 }

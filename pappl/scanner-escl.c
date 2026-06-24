@@ -402,6 +402,17 @@ escl_get_next_document(
     return;
   }
 
+  // If the page file is empty and scanning is still in progress, the page
+  // isn't ready yet.  Return 503 so the client retries instead of getting a
+  // 0-byte response that looks like a truncated stream.
+  if (st.st_size == 0 && !job->scan_complete)
+  {
+    close(fd);
+    httpSetField(client->http, HTTP_FIELD_WWW_AUTHENTICATE, "3");
+    papplClientRespond(client, HTTP_STATUS_SERVICE_UNAVAILABLE, NULL, NULL, 0, 0);
+    return;
+  }
+
   // Determine Content-Type from scan options...
   options = papplJobCreateScanOptions(job);
   if (options && !strncmp(options->format, "application/pdf", 15))
