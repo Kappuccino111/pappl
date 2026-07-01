@@ -745,8 +745,20 @@ papplSystemRun(pappl_system_t *system)	// I - System
       papplLog(system, PAPPL_LOGLEVEL_ERROR, "Unable to accept new connections: %s", strerror(errno));
       break;
     }
+    else if (pcount <= 0)
+    {
+      // Limit CPU usage
+      if (ptimeout > 0)
+	usleep(1);
 
-    if (pcount > 0)
+      // Resume listening
+      if (system->num_clients < system->max_clients)
+      {
+	for (i = 0; i < system->num_listeners; i ++)
+	  system->listeners[i].events = POLLIN;
+      }
+    }
+    else if (pcount > 0)
     {
       // Accept client connections as needed...
       time(&idletime);
@@ -781,14 +793,6 @@ papplSystemRun(pappl_system_t *system)	// I - System
       {
 	for (i = 0; i < system->num_listeners; i ++)
 	  system->listeners[i].events = 0;
-      }
-    }
-    else
-    {
-      if (system->num_clients < system->max_clients)
-      {
-	for (i = 0; i < system->num_listeners; i ++)
-	  system->listeners[i].events = POLLIN;
       }
     }
 

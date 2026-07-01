@@ -1751,7 +1751,7 @@ pappl_socket_read(
   if ((sock = papplDeviceGetData(device)) == NULL)
     return (-1);
 
-  // Only read if we have data to read within 100ms...
+  // Only read if we have data to read within 10 seconds...
   data.fd      = sock->fd;
   data.events  = POLLIN;
   data.revents = 0;
